@@ -7,14 +7,14 @@
       <el-aside class="aside" width="200px">
         <el-menu
         background-color="#c2d4e7"
-        active-text-color="#99CCCC">
+        :unique-opened="true">
           <el-submenu index="1">
             <template slot="title">
               <i class="el-icon-user"></i>
               <span>用户管理</span>
             </template>
             <el-menu-item-group>
-              <el-menu-item index="1-1">用户列表</el-menu-item>
+              <el-menu-item index="1-1"><i class="el-icon-price-tag"></i>用户列表</el-menu-item>
             </el-menu-item-group>
           </el-submenu>
           <el-submenu index="2">
@@ -23,8 +23,8 @@
               <span>权限管理</span>
             </template>
             <el-menu-item-group>
-              <el-menu-item index="2-1">角色列表</el-menu-item>
-              <el-menu-item index="2-2">权限列表</el-menu-item>
+              <el-menu-item index="2-1"><i class="el-icon-price-tag"></i>角色列表</el-menu-item>
+              <el-menu-item index="2-2"><i class="el-icon-price-tag"></i>权限列表</el-menu-item>
             </el-menu-item-group>
           </el-submenu>
           <el-submenu index="3">
@@ -33,9 +33,9 @@
               <span>商品管理</span>
             </template>
             <el-menu-item-group>
-              <el-menu-item index="3-1">商品列表</el-menu-item>
-              <el-menu-item index="3-2">分类参数</el-menu-item>
-              <el-menu-item index="3-2">商品分类</el-menu-item>
+              <el-menu-item index="3-1"><i class="el-icon-price-tag"></i>商品列表</el-menu-item>
+              <el-menu-item index="3-2"><i class="el-icon-price-tag"></i>分类参数</el-menu-item>
+              <el-menu-item index="3-2"><i class="el-icon-price-tag"></i>商品分类</el-menu-item>
             </el-menu-item-group>
           </el-submenu>
           <el-submenu index="4">
@@ -44,7 +44,7 @@
               <span>订单管理</span>
             </template>
             <el-menu-item-group>
-              <el-menu-item index="4-1">订单列表</el-menu-item>
+              <el-menu-item index="4-1"><i class="el-icon-price-tag"></i>订单列表</el-menu-item>
             </el-menu-item-group>
           </el-submenu>
           <el-submenu index="5">
@@ -53,38 +53,10 @@
               <span>数据统计</span>
             </template>
             <el-menu-item-group>
-              <el-menu-item index="5-1">数据报表</el-menu-item>
+              <el-menu-item index="5-1"><i class="el-icon-price-tag"></i>数据报表</el-menu-item>
             </el-menu-item-group>
           </el-submenu>
         </el-menu>
-          <!-- <el-menu-item index="2">
-            <i class="el-icon-menu"></i>
-            <span slot="title">权限管理</span>
-            <el-menu-item-group>
-              <el-menu-item index="2-1">角色列表</el-menu-item>
-              <el-menu-item index="2-2">权限列表</el-menu-item>
-            </el-menu-item-group>
-          </el-menu-item>
-          <el-menu-item index="3">
-            <i class="el-icon-document"></i>
-            <span slot="title">商品管理</span>
-            <el-menu-item-group>
-              <el-menu-item index="3-1">商品列表</el-menu-item>
-              <el-menu-item index="3-2">分类参数</el-menu-item>
-              <el-menu-item index="3-3">商品分类</el-menu-item>
-            </el-menu-item-group>
-          </el-menu-item>
-          <el-menu-item index="4">
-            <i class="el-icon-setting"></i>
-            <span slot="title">订单管理</span>
-            <el-menu-item index="4-1">订单列表</el-menu-item>
-          </el-menu-item>
-          <el-menu-item index="5">
-            <i class="el-icon-setting"></i>
-            <span slot="title">数据统计</span>
-            <el-menu-item index="5-1">数据报表</el-menu-item>
-          </el-menu-item>
-        </el-menu> -->
       </el-aside>
       <el-main class="main">Main</el-main>
     </el-container>
@@ -93,6 +65,17 @@
 
 <script>
 export default {
+  beforeCreate () {
+    const token = localStorage.getItem('token')
+    if (!token) {
+      this.$router.push({ name: 'login' })
+      this.$message({
+        showClose: true,
+        message: '请登录帐号',
+        type: 'warning'
+      })
+    }
+  }
 }
 </script>
 
