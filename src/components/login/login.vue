@@ -54,6 +54,7 @@ export default {
         localStorage.setItem('token', data.token)
         this.$router.push('home')
         this.$message({
+          showClose: true,
           message: msg,
           type: 'success'
         })
