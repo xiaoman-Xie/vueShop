@@ -52,7 +52,7 @@ export default {
       if (status === 200) {
         // 保存token
         localStorage.setItem('token', data.token)
-        this.$router.push('home')
+        this.$router.push('/home')
         this.$message({
           showClose: true,
           message: msg,

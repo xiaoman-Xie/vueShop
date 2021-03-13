@@ -3,6 +3,7 @@
     <el-header class="header">电商管理系统
       <el-button id="exit" type="success" round @click="exit">退出</el-button>
     </el-header>
+    <!-- 垂直导航栏 -->
     <el-container>
       <el-aside class="aside" width="200px">
         <el-menu
@@ -61,6 +62,7 @@
           </el-submenu>
         </el-menu>
       </el-aside>
+      <!-- 展示区 -->
       <el-main class="main">
         <router-view></router-view>
       </el-main>
