@@ -1,10 +1,7 @@
 <template>
   <el-card class="box-card">
     <!-- 面包屑 -->
-    <el-breadcrumb separator="/">
-      <el-breadcrumb-item>用户管理</el-breadcrumb-item>
-      <el-breadcrumb-item>用户列表</el-breadcrumb-item>
-    </el-breadcrumb>
+    <custom-bread level1="用户管理" level2="用户列表"></custom-bread>
     <!-- 搜索框 -->
     <el-row class="search-box">
       <el-col>
@@ -163,7 +160,7 @@
 
 <script>
 export default {
-  data: function () {
+  data () {
     return {
       query: '', // 查询参数
       pagenum: 1, // 当前页码，不能为空
@@ -288,7 +285,7 @@ export default {
     async changeUserRole () {
       const res = await this.$http.put(`users/${this.userRole.id}/role`, this.userRole)
       const {meta: {msg, status}} = res.data
-      if (status === 200 ) {
+      if (status === 200) {
         this.showChangeRole = false
         this.userRole = {}
         this.getUserList()
