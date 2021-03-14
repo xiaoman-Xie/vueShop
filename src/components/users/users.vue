@@ -9,10 +9,14 @@
     <el-row class="search-box">
       <el-col>
         <div style="margin-top: 15px;">
-          <el-input placeholder="请输入内容" v-model="query" class="search-input">
-            <el-button slot="append" icon="el-icon-search"></el-button>
+          <el-input placeholder="请输入内容" v-model="query"
+            @clear="searchUserslist" class="search-input" clearable>
+            <el-button slot="append"
+            icon="el-icon-search"
+            @click="searchUserslist"></el-button>
           </el-input>
-          <el-button type="success" plain>添加用户</el-button>
+          <el-button type="success" plain @click="showAddUser = true">添加用户</el-button>
+          <!-- 添加用户表单对话框 -->
         </div>
       </el-col>
     </el-row>
@@ -23,7 +27,7 @@
       border
       style="width: 100%">
       <el-table-column
-        type="id"
+        prop="id"
         width="50">
       </el-table-column>
       <el-table-column
@@ -57,22 +61,71 @@
           <el-switch
             v-model="scope.row.mg_state"
             active-color="#13ce66"
-            inactive-color="#ff4949">
+            inactive-color="#ff4949"
+            @change="changeState(scope.row)">
           </el-switch>
         </template>
       </el-table-column>
       <el-table-column
         prop="address"
         label="操作">
-        <template>
+        <template slot-scope="scope">
           <el-row>
-            <el-button type="primary" icon="el-icon-edit" size="small" plain circle></el-button>
-            <el-button type="warning" icon="el-icon-s-tools" size="small" plain circle></el-button>
-            <el-button type="danger" icon="el-icon-delete" size="small" plain circle></el-button>
+            <!-- 编辑用户 -->
+            <el-button type="primary"
+              icon="el-icon-edit"
+              size="small"
+              plain
+              circle
+              @click="showEdit(scope.row)"></el-button>
+              <el-dialog title="编辑用户" :visible.sync="showEditUser">
+                <el-form :model="editUserForm">
+                  <el-form-item class="editForm" label="用户名" :label-width="editUserWidth">
+                    <el-input v-model="editUserForm.username" autocomplete="off" disabled></el-input>
+                  </el-form-item>
+                  <el-form-item class="editForm" label="邮箱" :label-width="editUserWidth">
+                    <el-input v-model="editUserForm.email" autocomplete="off"></el-input>
+                  </el-form-item>
+                  <el-form-item class="editForm" label="手机号" :label-width="editUserWidth">
+                    <el-input v-model="editUserForm.mobile" autocomplete="off"></el-input>
+                  </el-form-item>
+                </el-form>
+                <div slot="footer" class="dialog-footer">
+                  <el-button type="primary" @click="editUser(scope.row)">确 定</el-button>
+                  <el-button @click="showEditUser = false">取 消</el-button>
+                </div>
+              </el-dialog>
+            <!-- 修改用户角色 -->
+            <el-button type="warning" icon="el-icon-s-tools" size="small" @click="showUserRole(scope.row)" plain circle></el-button>
+            <el-dialog title="修改用户角色" :visible.sync="showChangeRole">
+              <el-form :model="userRole">
+                <el-form-item label="用户名" :label-width="changeRoleWidth">
+                  <el-input v-model="currentUser" autocomplete="off"></el-input>
+                </el-form-item>
+                <el-form-item label="角色" :label-width="changeRoleWidth">
+                  <el-select v-model="userRole.rid" placeholder="请选择">
+                    <el-option :label="item.roleName" :value="item.id"
+                      v-for="(item) in roleslist" :key="item.id"></el-option>
+                  </el-select>
+                </el-form-item>
+              </el-form>
+              <div slot="footer" class="dialog-footer">
+                <el-button type="primary" @click="changeUserRole">确 定</el-button>
+                <el-button @click="showChangeRole = false">取 消</el-button>
+              </div>
+            </el-dialog>
+            <el-button type="danger"
+              class="delete-btn"
+              icon="el-icon-delete"
+              size="small"
+              plain
+              circle
+              @click="deleteUser(scope.row.id)"></el-button>
           </el-row>
         </template>
       </el-table-column>
     </el-table>
+    <!-- 分页 -->
     <div class="devide-page">
       <el-pagination
         @size-change="handleSizeChange"
@@ -84,6 +137,27 @@
         :total="total">
       </el-pagination>
     </div>
+    <!-- 添加用户-对话框 -->
+    <el-dialog title="添加用户" :visible.sync="showAddUser">
+      <el-form :model="addUserForm">
+        <el-form-item class="addForm" label="用户名" :label-width="addUserWidth">
+          <el-input v-model="addUserForm.username" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item class="addForm" label="密码" :label-width="addUserWidth">
+          <el-input v-model="addUserForm.password" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item class="addForm" label="邮箱" :label-width="addUserWidth">
+          <el-input v-model="addUserForm.email" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item class="addForm" label="手机号" :label-width="addUserWidth">
+          <el-input v-model="addUserForm.mobile" autocomplete="off"></el-input>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="addUser">确 定</el-button>
+        <el-button @click="dialogFormVisible = false">取 消</el-button>
+      </div>
+    </el-dialog>
   </el-card>
 </template>
 
@@ -91,11 +165,35 @@
 export default {
   data: function () {
     return {
-      query: '',// 查询参数
-      pagenum: 1,// 当前页码，不能为空
-      pagesize: 4,// 每页显示数，不能为空
-      userslist: [],// 用户信息
-      total: 0
+      query: '', // 查询参数
+      pagenum: 1, // 当前页码，不能为空
+      pagesize: 6, // 每页显示数，不能为空
+      userslist: [], // 用户信息
+      total: 0,
+      showAddUser: false, // 添加用户对话框
+      showEditUser: false,
+      showChangeRole: false,
+      addUserWidth: '100px',
+      editUserWidth: '100px',
+      changeRoleWidth: '100px',
+      addUserForm: {// 添加用户-请求参数
+        username: '',
+        password: '',
+        email: '',
+        mobile: ''
+      },
+      editUserForm: {// 编辑用户-请求参数
+        username: '',
+        password: '',
+        email: '',
+        mobile: ''
+      },
+      userRole: {// 修改角色-请求参数
+        id: 0,
+        rid: ''
+      },
+      currentUser: '', // 当前用户名-table选中
+      roleslist: [] // 修改角色-角色列表
     }
   },
   methods: {
@@ -109,19 +207,118 @@ export default {
       if (status === 200) {
         this.userslist = users
         this.total = total
-        console.log(users)
-        this.$message.success(msg)
       } else {
-        this.$message.warning('0000')
+        this.$message.warning(msg)
       }
     },
+    // 更改每页展示数据数
     handleSizeChange (val) {
       this.pagesize = val
       this.getUserList()
     },
+    // 更改当前页面
     handleCurrentChange (val) {
       this.pagenum = val
       this.getUserList()
+    },
+    // 搜索+返回原页面（重新加载）
+    searchUserslist () {
+      this.getUserList()
+    },
+    // 添加用户-发送请求
+    async addUser () {
+      const res = await this.$http.post(`users`, this.addUserForm)
+      const {meta: {status, msg}} = res.data
+      if (status === 201) {
+        this.addUserForm = {}
+        this.showAddUser = false
+        this.$message.success(msg)
+      } else {
+        this.$message.warning(msg)
+      }
+    },
+    // 更改用户状态
+    changeState (user) {
+      this.$http.put(`users/${user.id}/state/${user.mg_state}`).then(res => {
+        const {meta: {msg, status}} = res.data
+        if (status === 200) {
+          this.$message.success(msg)
+        } else {
+          this.$message.warning(msg)
+        }
+      })
+    },
+    // 编辑用户-展开对话框
+    showEdit (userInfo) {
+      this.currentUser = userInfo.id
+      this.editUserForm.username = userInfo.username
+      this.editUserForm.email = userInfo.email
+      this.editUserForm.mobile = userInfo.mobile
+      this.showEditUser = true
+    },
+    // 编辑用户-提交
+    async editUser () {
+      const res = await this.$http.put(`users/${this.currentUser}`, this.editUserForm)
+      const {meta: {msg, status}} = res.data
+      console.log(res)
+      if (status === 200) {
+        this.showEditUser = false
+        this.getUserList()
+        this.$message.success(msg)
+      } else {
+        this.$message.warning(msg)
+      }
+    },
+    // 修改用户权限-展示对话框
+    async showUserRole (user) {
+      // 请求-获取角色
+      const res1 = await this.$http.get('roles', '')
+      const {data, meta} = res1.data
+      if (meta.status === 200) {
+        this.roleslist = data
+      }
+      // 用户id->查找用户信息（rid）
+      const res2 = await this.$http.get(`users/${user.id}`)
+      this.currentUser = user.username
+      this.userRole.id = user.id
+      this.userRole.rid = res2.data.data.rid
+      this.showChangeRole = true
+    },
+    // 修改用户权限-提交表单
+    async changeUserRole () {
+      const res = await this.$http.put(`users/${this.userRole.id}/role`, this.userRole)
+      const {meta: {msg, status}} = res.data
+      if (status === 200 ) {
+        this.showChangeRole = false
+        this.userRole = {}
+        this.getUserList()
+        this.$message.success(msg)
+      } else {
+        this.$message.warning(msg)
+      }
+    },
+    // 删除用户
+    deleteUser (id) {
+      this.$confirm('是否确定删除该用户', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(async () => {
+        const res = await this.$http.delete(`users/${id}`)
+        const {meta: {msg, status}} = res.data
+        if (status === 200) {
+          this.$message({
+            type: 'success',
+            message: msg
+          })
+        }
+        this.getUserList()
+      }).catch(() => {
+        this.$message({
+          type: 'info',
+          message: '已取消删除'
+        })
+      })
     }
   },
   created () {
@@ -142,5 +339,14 @@ export default {
   }
   .devide-page {
     margin-top: 15px;
+  }
+  .addForm, .editForm {
+    margin-right: 50px;
+  }
+  .delete-btn {
+    margin-left: 0;
+  }
+  .dialog-footer {
+    margin-right: 50px;
   }
 </style>
