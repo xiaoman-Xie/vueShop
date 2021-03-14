@@ -2,21 +2,32 @@
   <el-card class="box-card">
     <custom-bread level1="权限管理" level2="权限列表"></custom-bread>
     <el-table
-      :data="tableData"
-      class="rights-table">
+      :data="roleslist"
+      class="rights-table"
+      height="520px">
       <el-table-column
-        prop="date"
-        label="日期"
-        width="180">
+        type="index"
+        width="200">
       </el-table-column>
       <el-table-column
-        prop="name"
-        label="姓名"
-        width="180">
+        prop="authName"
+        label="权限名称"
+        width="300">
       </el-table-column>
       <el-table-column
-        prop="address"
-        label="地址">
+        prop="path"
+        label="路径"
+        width="300">
+      </el-table-column>
+      <el-table-column
+        prop="level"
+        label="权限等级"
+        :filters="[{ text: '一级', value: '0' }, { text: '二级', value: '1' }, { text : '三级', value: '2'}]">
+        <template slot-scope="scope">
+          <el-tag v-if="scope.row.level==='0'" type="warning">一级</el-tag>
+          <el-tag  v-if="scope.row.level==='1'">二级</el-tag >
+          <el-tag  v-if="scope.row.level==='2'" type="success">三级</el-tag >
+        </template>
       </el-table-column>
     </el-table>
   </el-card>
@@ -26,35 +37,16 @@
 export default {
   data () {
     return {
-      tableData: [{
-        date: '2016-05-02',
-        name: '王小虎',
-        address: '上海市普陀区金沙江路 1518 弄'
-      }, {
-        date: '2016-05-04',
-        name: '王小虎',
-        address: '上海市普陀区金沙江路 1517 弄'
-      }, {
-        date: '2016-05-01',
-        name: '王小虎',
-        address: '上海市普陀区金沙江路 1519 弄'
-      }, {
-        date: '2016-05-03',
-        name: '王小虎',
-        address: '上海市普陀区金沙江路 1516 弄'
-      }],
       roleslist: []
     }
   },
   methods: {
     async getRightslist () {
-      // const AUTH_TOKEN = localStorage.getItem('token')
-      const res = await this.$http.get('roles', '')
+      const res = await this.$http.get('rights/list', '')
       const {data, meta} = res.data
       if (meta.status === 200) {
         this.roleslist = data
       }
-      console.log(res)
     }
   },
   created () {
@@ -65,7 +57,7 @@ export default {
 
 <style scoped>
   .box-card {
-    height: 100%;
+    height: 99%;
   }
   .rights-table {
     width: 100%;

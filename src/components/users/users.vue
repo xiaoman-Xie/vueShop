@@ -196,8 +196,6 @@ export default {
   methods: {
     // 获取用户列表信息
     async getUserList () {
-      const AUTH_TOKEN = localStorage.getItem('token')
-      this.$http.defaults.headers.common['Authorization'] = AUTH_TOKEN
       const res = await this.$http.get(`users?query=${this.query}&pagenum=${this.pagenum}
       &pagesize=${this.pagesize}`)
       const {meta: {status, msg}, data: {users, total}} = res.data
@@ -326,7 +324,7 @@ export default {
 
 <style scoped>
   .box-card {
-    height: 100%;
+    height: 99%;
   }
   .search-box {
     margin-bottom: 15px;
