@@ -5,21 +5,43 @@
     <el-table
       :data="roleslist"
       style="width: 100%"
-      class="roles-table"
-      border>
+      class="roles-table">
+      <!-- 下拉表格-展示角色权限 -->
+      <el-table-column type = "expand">
+        <template slot-scope="scope" width ="150">
+          <el-row class="level-1-row" v-for="(item1,i) in scope.row.children" :key="i">
+            <el-col :span="4">
+              <el-tag @close="deleteRight(scope.row,item1.id)" closable>{{item1.authName}}</el-tag>
+              <i class="el-icon-arrow-right"></i>
+            </el-col>
+            <el-col :span="20">
+              <el-row class="level-2-row" v-for="(item2,j) in item1.children" :key="j">
+                <el-col :span="4">
+                  <el-tag  type="success" @close="deleteRight(scope.row,item2.id)" closable>{{item2.authName}}</el-tag>
+                  <i class="el-icon-arrow-right"></i>
+                </el-col>
+                <el-col :span="20">
+                  <el-tag type="warning" @close="deleteRight(scope.row,item3.id)" v-for="(item3,k) in item2.children" :key="k" closable>{{item3.authName}}</el-tag>
+                </el-col>
+              </el-row>
+            </el-col>
+          </el-row>
+          <span class="tips" v-if="scope.row.children.length ===0">未给该角色分配权限</span>
+        </template>
+      </el-table-column>
       <el-table-column
         type="index"
-        width="180">
+        width="150">
       </el-table-column>
       <el-table-column
         prop="roleName"
         label="角色名"
-        width="340">
+        width="300">
       </el-table-column>
       <el-table-column
         prop="roleDesc"
         label="姓名"
-        width="340">
+        width="300">
       </el-table-column>
       <el-table-column
         prop="address"
@@ -84,6 +106,10 @@ export default {
         id: '',
         roleName: '',
         roleDesc: ''
+      },
+      rightInfo: {
+        roleId: '',
+        rightId: ''
       }
     }
   },
@@ -125,6 +151,7 @@ export default {
         this.$message.warning(msg)
       }
     },
+    // 删除角色
     deleteRole (id) {
       this.$confirm('是否确定删除该角色', '提示', {
         confirmButtonText: '确定',
@@ -146,6 +173,20 @@ export default {
           message: '已取消删除'
         })
       })
+    },
+    // 删除权限
+    async deleteRight (role, rightId) {
+      this.rightInfo.roleId = role.id
+      this.rightInfo.rightId = rightId
+      // 请求路径：roles/:roleId/rights/:rightId
+      const res = await this.$http.delete(`roles/${role.id}/rights/${rightId}`, this.rightInfo)
+      const {data, meta: {msg, status}} = res.data
+      if (status === 200) {
+        this.$message.success(msg)
+        role.children = data
+      } else {
+        this.$message.warning(msg)
+      }
     }
   },
   created () {
@@ -166,5 +207,14 @@ export default {
   }
   .addRole-dialog {
     padding-right: 25px;
+  }
+  .level-1-row {
+    margin-bottom: 10px;
+  }
+  .level-2-row {
+    margin-bottom: 5px;
+  }
+  .tips {
+    color: rgb(184, 177, 177);
   }
 </style>
