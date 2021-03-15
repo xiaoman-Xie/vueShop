@@ -152,7 +152,7 @@
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button type="primary" @click="addUser">确 定</el-button>
-        <el-button @click="dialogFormVisible = false">取 消</el-button>
+        <el-button @click="showAddUser = false">取 消</el-button>
       </div>
     </el-dialog>
   </el-card>

@@ -27,7 +27,7 @@
               <span>权限管理</span>
             </template>
             <el-menu-item-group>
-              <el-menu-item index="2-1"><i class="el-icon-price-tag"></i>角色列表</el-menu-item>
+              <el-menu-item index="roles"><i class="el-icon-price-tag"></i>角色列表</el-menu-item>
               <el-menu-item index="rights"><i class="el-icon-price-tag"></i>权限列表</el-menu-item>
             </el-menu-item-group>
           </el-submenu>

@@ -4,7 +4,8 @@
     <el-table
       :data="roleslist"
       class="rights-table"
-      height="520px">
+      height="520px"
+      border>
       <el-table-column
         type="index"
         width="200">
