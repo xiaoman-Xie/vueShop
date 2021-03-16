@@ -224,9 +224,11 @@ export default {
     async addUser () {
       const res = await this.$http.post(`users`, this.addUserForm)
       const {meta: {status, msg}} = res.data
+      console.log(res)
       if (status === 201) {
         this.addUserForm = {}
         this.showAddUser = false
+        this.getUserList()
         this.$message.success(msg)
       } else {
         this.$message.warning(msg)

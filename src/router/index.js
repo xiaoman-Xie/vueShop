@@ -6,9 +6,11 @@ import Users from '../components/users/users.vue'
 import Right from '../components/rights/right.vue'
 import RolesList from '../components/rights/rolesList.vue'
 
+import { Message } from 'element-ui'
+
 Vue.use(Router)
 
-export default new Router({
+const router = new Router({
   routes: [
     {
       name: 'login',
@@ -39,3 +41,24 @@ export default new Router({
     }
   ]
 })
+
+router.beforeEach((to, from, next) => {
+  if (to.path === '/login') {
+    next()
+  } else {
+    const token = localStorage.getItem('token')
+    if (!token) {
+      // 当前路径不在login下才跳转
+      if (from.path !== '/login') {
+        router.push({
+          name: 'login'
+        })
+      }
+      Message.warning('请登录帐号')
+    } else {
+      next()
+    }
+  }
+})
+
+export default router

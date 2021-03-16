@@ -158,7 +158,7 @@ export default {
     // 提交数据-添加角色
     async addRole () {
       const res = await this.$http.post('roles', this.addRoleForm)
-      const {meta: {msg, status}} = res.meta
+      const {meta: {msg, status}} = res.data
       if (status === 201) {
         this.showAddRole = false
         this.$message.success(msg)
@@ -294,9 +294,6 @@ export default {
   }
   .breadCrumb {
     margin-bottom: 15px;
-  }
-  .roles-table {
-    margin-top: 15px;
   }
   .addRole-dialog {
     padding-right: 25px;
