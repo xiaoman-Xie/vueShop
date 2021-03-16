@@ -47,7 +47,9 @@
         prop="address"
         label="操作">
         <template slot-scope="scope">
-          <el-button type="primary" icon="el-icon-edit" plain @click="showEdit(scope.row)">编辑</el-button>
+          <el-button type="primary" icon="el-icon-edit" @click="showEdit(scope.row)" plain>编辑</el-button>
+          <el-button type="warning" icon="el-icon-setting" @click="showDistributeRight(scope.row)" plain>修改权限</el-button>
+          <el-button type="danger" icon="el-icon-delete" @click="deleteRole(scope.row.id)" plain>删除</el-button>
           <!-- 对话框-编辑角色 -->
           <el-dialog title="编辑角色" :visible.sync="showEditRole">
             <el-form :model="editRoleForm" class="addRole-dialog">
@@ -63,8 +65,22 @@
               <el-button @click="editRole" type="primary">确 定</el-button>
             </div>
           </el-dialog>
-          <el-button type="warning" icon="el-icon-setting" plain>分配权限</el-button>
-          <el-button type="danger" icon="el-icon-delete" @click="deleteRole(scope.row.id)" plain>删除</el-button>
+          <!-- 对话框-修改权限 -->
+          <el-dialog class="edit-rights" title="修改权限" :visible.sync="showDistribute">
+            <el-tree
+              :data="rightsTree"
+              show-checkbox
+              node-key="id"
+              ref="tree"
+              :default-expanded-keys="expandNodes"
+              :default-checked-keys="checkedRights"
+              :props="rightsTreeChildren">
+            </el-tree>
+            <div slot="footer" class="dialog-footer">
+              <el-button @click="showDistribute = false">取 消</el-button>
+              <el-button type="primary" @click="distributeRight()">确 定</el-button>
+            </div>
+          </el-dialog>
         </template>
       </el-table-column>
     </el-table>
@@ -95,25 +111,43 @@ export default {
       roleslist: [],
       showAddRole: false,
       showEditRole: false,
+      showDistribute: false,
       addRoleWidth: '100px',
       editRoleWidth: '100px',
       currentRoleId: '',
+      rightsTree: [], // 修改权限-树形列表
+      checkedRights: [], // 修改权限-已有（选中）权限
+      expandNodes: [], // 修改权限-需展开的结点
+      // 表单数据-添加角色对话框
       addRoleForm: {
         roleName: '',
         roleDesc: ''
       },
+      // 表单数据-编辑角色对话框
       editRoleForm: {
         id: '',
         roleName: '',
         roleDesc: ''
       },
+      // 请求数据-删除权限（下拉行）
       rightInfo: {
         roleId: '',
         rightId: ''
+      },
+      // 辅助渲染-修改权限
+      rightsTreeChildren: {
+        children: 'children',
+        label: 'authName'
+      },
+      // 修改权限-赋予权限
+      rightsChoose: {
+        roleId: '',
+        rids: ''
       }
     }
   },
   methods: {
+    // 获取角色列表
     async getRoleslist () {
       const res = await this.$http.get('roles', '')
       const {data, meta} = res.data
@@ -121,6 +155,7 @@ export default {
         this.roleslist = data
       }
     },
+    // 提交数据-添加角色
     async addRole () {
       const res = await this.$http.post('roles', this.addRoleForm)
       const {meta: {msg, status}} = res.meta
@@ -131,14 +166,15 @@ export default {
         this.$message.warning(msg)
       }
     },
+    // 对话框-展示编辑角色
     showEdit (role) {
-      console.log(role)
       this.currentRoleId = role.id
       this.editRoleForm.id = role.id
       this.editRoleForm.roleName = role.roleName
       this.editRoleForm.roleDesc = role.roleDesc
       this.showEditRole = true
     },
+    // 提交数据-编辑角色
     async editRole () {
       const res = await this.$http.put(`roles/${this.currentRoleId}`, this.editRoleForm)
       const {meta: {msg, status}} = res.data
@@ -151,7 +187,63 @@ export default {
         this.$message.warning(msg)
       }
     },
-    // 删除角色
+    // 修改权限-展示对话框
+    async showDistributeRight (role) {
+      this.currentRoleId = role.id
+      // 清空历史
+      this.expandNodes = []
+      this.checkedRights = []
+      // 获取权限数据
+      const res = await this.$http.get(`rights/tree`)
+      const {data, meta: {msg, status}} = res.data
+      if (status === 200) {
+        this.rightsTree = data
+        // 获取所有已有权限id
+        role.children.forEach(item1 => {
+          // 若有二级权限，则展开一级菜单
+          if (item1.children.length !== 0) {
+            item1.children.forEach(item2 => {
+              // 若有三级权限，则展开二级菜单
+              if (item2.children.length !== 0) {
+                item2.children.forEach(item3 => {
+                  this.checkedRights.push(item3.id)
+                  this.expandNodes.push(item2.id)
+                })
+                this.expandNodes.push(item1.id)
+              } else {
+                this.checkedRights.push(item2.id)
+              }
+            })
+          } else {
+            this.checkedRights.push(item1.id)
+          }
+        })
+      } else {
+        this.$message.warning(msg)
+      }
+      this.showDistribute = true
+    },
+    // 提交数据-修改权限
+    async distributeRight () {
+      // 获取全选的id
+      let arr1 = this.$refs.tree.getCheckedKeys()
+      // 获取半选的id
+      let arr2 = this.$refs.tree.getHalfCheckedKeys()
+      // 获取所有选中的id
+      let arr = arr1.concat(arr2).join()
+      this.rightsChoose.roleId = this.currentRoleId
+      this.rightsChoose.rids = arr
+      const res = await this.$http.post(`roles/${this.currentRoleId}/rights`, this.rightsChoose)
+      const {meta: {msg, status}} = res.data
+      if (status === 200) {
+        this.showDistribute = false
+        this.getRoleslist()
+        this.$message.success(msg)
+      } else {
+        this.$message.warning(msg)
+      }
+    },
+    // 提交数据-删除角色
     deleteRole (id) {
       this.$confirm('是否确定删除该角色', '提示', {
         confirmButtonText: '确定',
@@ -174,7 +266,7 @@ export default {
         })
       })
     },
-    // 删除权限
+    // 提交数据-删除权限
     async deleteRight (role, rightId) {
       this.rightInfo.roleId = role.id
       this.rightInfo.rightId = rightId
@@ -183,6 +275,7 @@ export default {
       const {data, meta: {msg, status}} = res.data
       if (status === 200) {
         this.$message.success(msg)
+        // 渲染优化-更新当前角色的children
         role.children = data
       } else {
         this.$message.warning(msg)
