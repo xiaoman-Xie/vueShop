@@ -127,14 +127,12 @@ export default {
             item.attr_vals = (item.attr_vals.length === 0) ? [] : item.attr_vals = item.attr_vals.split(',')
           })
         }
-        console.log(this.dynaParams)
       } else if (this.step_active === '3') {
         if (this.selectedOptions.length !== 3) {
           this.$message.warning('请先选择三级商品分类')
         }
         const res = await this.$http.get(`categories/${this.selectedOptions[2]}/attributes?sel=only`)
         this.staticParams = res.data.data
-        console.log(this.staticParams)
       }
     },
     async getGoodsCate () {
@@ -171,11 +169,16 @@ export default {
       this.dynaParams.forEach((item) => {
         item.attr_vals = item.attr_vals.join(',')
       })
-      console.log(this.dynaParams)
       let attrs = this.staticParams.concat(this.dynaParams)
       this.goods_form.attrs = attrs
-      const res = await this.$http.post(`ods`, this.goods_form)
-      console.log(res)
+      const res = await this.$http.post(`goods`, this.goods_form)
+      const {meta: {msg, status}} = res.data
+      if (status === 201) {
+        this.$message.success(msg)
+        this.$router.push('/goods')
+      } else {
+        this.$message.warning(msg)
+      }
     }
   },
   components: {
