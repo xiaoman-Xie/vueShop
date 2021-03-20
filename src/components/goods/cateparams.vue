@@ -21,7 +21,7 @@
     <!-- tabs -->
     <el-tabs v-model="activeTabs">
       <el-tab-pane label="动态参数" name="first">
-        <el-button type="primary" @click="showAdd">设置动态参数</el-button>
+        <el-button type="primary" @click="showAddDyna">添加动态参数</el-button>
         <el-table
           :data="dynaParams">
           <!-- 表格下拉 -->
@@ -70,29 +70,85 @@
                     <el-button type="primary" @click="editDyna(scope.row)">确 定</el-button>
                   </span>
                 </el-dialog>
-                <el-button type="danger" @click="deleteCate(scope.row)" icon="el-icon-delete" size="small" plain circle></el-button>
+                <el-button type="danger" @click="deleteParams(scope.row)" icon="el-icon-delete" size="small" plain circle></el-button>
               </el-row>
             </template>
           </el-table-column>
         </el-table>
       </el-tab-pane>
-      <el-tab-pane label="静态参数" name="second">配置管理</el-tab-pane>
+      <el-tab-pane label="静态参数" name="second">
+        <el-button type="primary" @click="showAddStatic">添加静态参数</el-button>
+        <el-table
+          :data="staticParams">
+          <el-table-column
+            type="index">
+          </el-table-column>
+          <el-table-column
+            prop="attr_name"
+            label="属性名称"
+            width="180">
+          </el-table-column>
+          <el-table-column
+            prop="attr_vals"
+            label="属性值"
+            width="180">
+          </el-table-column>
+          <el-table-column
+            label="操作">
+            <template slot-scope="scope">
+              <el-row>
+                <el-button type="primary" icon="el-icon-edit" @click="showEditS(scope.row)" size="small" plain circle></el-button>
+                <el-dialog :visible.sync="showEditStatic">
+                  <el-form v-model="editStaticForm">
+                    <el-form-item label="参数名称">
+                      <el-input v-model="editStaticForm.attr_name"></el-input>
+                    </el-form-item>
+                    <el-form-item label="参数值">
+                      <el-input v-model="editStaticForm.attr_vals"></el-input>
+                    </el-form-item>
+                  </el-form>
+                  <span slot="footer" class="dialog-footer">
+                    <el-button @click="showEditStatic = false">取 消</el-button>
+                    <el-button type="primary" @click="editStatic()">确 定</el-button>
+                  </span>
+                </el-dialog>
+                <el-button type="danger" @click="deleteParams(scope.row)" icon="el-icon-delete" size="small" plain circle></el-button>
+              </el-row>
+            </template>
+          </el-table-column>
+        </el-table>
+      </el-tab-pane>
     </el-tabs>
     <!-- 对话框-添加动态参数 -->
     <el-dialog
       title="添加分类参数"
-      :visible.sync="showAddDialog">
-      <el-form v-model="addParamForm">
+      :visible.sync="showAddDialog1">
+      <el-form v-model="addDynaForm">
         <el-form-item label="参数名称">
-          <el-input v-model="addParamForm.attr_name"></el-input>
+          <el-input v-model="addDynaForm.attr_name"></el-input>
         </el-form-item>
         <el-form-item label="值">
-          <el-input v-model="addParamForm.attr_vals"></el-input>
+          <el-input v-model="addDynaForm.attr_vals"></el-input>
         </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
-        <el-button @click="showAddDialog = false">取 消</el-button>
+        <el-button @click="showAddDialog1 = false">取 消</el-button>
         <el-button type="primary" @click="addCate">确 定</el-button>
+      </span>
+    </el-dialog>
+    <!-- 对话框-添加静态参数 -->
+    <el-dialog title="添加静态参数" :visible.sync="showAddDialog2">
+      <el-form v-model="addStaticForm">
+        <el-form-item label="参数名称">
+          <el-input v-model="addStaticForm.attr_name"></el-input>
+        </el-form-item>
+        <el-form-item label="参数值">
+          <el-input v-model="addStaticForm.attr_vals"></el-input>
+        </el-form-item>
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="showAddDialog2 = false">取 消</el-button>
+        <el-button type="primary" @click="addStatic()">确 定</el-button>
       </span>
     </el-dialog>
   </el-card>
@@ -112,21 +168,32 @@ export default {
       },
       selectedOptions: [],
       reqCateId: '',
-      currentParamId: '',
+      currentParamId: '', // 当前（动/静）参数id
       dynaParams: [], // 动态参数
       staticParams: [], // 静态参数
       activeTabs: 'first', // 当前tabs
       inputTagVisible: false, // 添加tag时输入框
       inputTagValue: '',
-      showAddDialog: false, // 对话框-添加分类参数
-      addParamForm: { // 对话框-添加动态参数
+      showAddDialog1: false, // 对话框-添加动态参数
+      showAddDialog2: false, // 对话框-添加静态参数
+      showEditDyna: false, // 对话框-编辑动态参数
+      showEditStatic: false, // 对话框-编辑静态参数
+      addDynaForm: { // 对话框-添加动态参数
         // id: this.reqParamsId,
         attr_name: '',
         attr_sel: 'many',
         attr_vals: ''
       },
-      showEditDyna: false, // 展示编辑对话框
+      addStaticForm: {
+        attr_name: '',
+        attr_sel: 'only',
+        attr_vals: ''
+      },
       editParamName: '', // 新参数名
+      editStaticForm: {
+        attr_name: '',
+        attr_vals: ''
+      },
       reqForm: {
         attr_name: '',
         attr_sel: '',
@@ -179,7 +246,6 @@ export default {
         this.$message.warning(msg)
       }
     },
-
     // 删除tags-动态参数
     // eslint-disable-next-line
     deleteTags (attr, tag) {
@@ -206,28 +272,28 @@ export default {
       this.inputTagVisible = false
       this.inputTagValue = ''
     },
-    showAdd () {
+    showAddDyna () {
       if (this.reqCateId !== '') {
-        this.showAddDialog = true
+        this.showAddDialog1 = true
       } else {
         this.$message.warning('请先选择商品分类')
       }
     },
     // 对话框-添加分类参数
     async addCate () {
-      const res = await this.$http.post(`categories/${this.reqCateId}/attributes`, this.addParamForm)
+      const res = await this.$http.post(`categories/${this.reqCateId}/attributes`, this.addDynaForm)
       const {meta: {msg, status}} = res.data
       if (status === 201) {
         this.$message.success(msg)
         this.showAddDialog = false
-        this.addParamForm = {}
+        this.addDynaForm = {}
         this.handleChange()
       } else {
         this.$message.warning(msg)
       }
     },
     // 删除分类
-    deleteCate (attr) {
+    deleteParams (attr) {
       this.$confirm('是否确定删除该分类', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
@@ -260,6 +326,47 @@ export default {
       }
       this.showEditDyna = false
       this.handleChange()
+    },
+    // 对话框-添加静态参数-展示
+    showAddStatic () {
+      if (this.reqCateId !== '') {
+        this.showAddDialog2 = true
+      } else {
+        this.$message.warning('请先选择商品分类')
+      }
+    },
+    // 对话框-添加静态参数-提交
+    async addStatic () {
+      const res = await this.$http.post(`categories/${this.reqCateId}/attributes`, this.addStaticForm)
+      const {meta: {msg, status}} = res.data
+      if (status === 201) {
+        this.showAddDialog2 = false
+        this.$message.success(msg)
+      } else {
+        this.$message.warning(msg)
+      }
+      this.handleChange()
+    },
+    showEditS (attr) {
+      this.currentParamId = attr.attr_id
+      this.editStaticForm.attr_name = attr.attr_name
+      this.editStaticForm.attr_vals = attr.attr_vals
+      this.showEditStatic = true
+    },
+    async editStatic () {
+      this.reqForm.attr_name = this.editStaticForm.attr_name
+      this.reqForm.attr_sel = 'only'
+      this.reqForm.attr_vals = this.editStaticForm.attr_vals
+      const res = await this.$http.put(`categories/${this.reqCateId}/attributes/${this.currentParamId}`, this.reqForm)
+      const {meta: {msg, status}} = res.data
+      console.log(res)
+      if (status === 200) {
+        this.showEditStatic = false
+        this.handleChange()
+        this.$message.success(msg)
+      } else {
+        this.$message.warning(msg)
+      }
     }
   }
 }
