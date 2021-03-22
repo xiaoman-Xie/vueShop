@@ -52,8 +52,8 @@
           <el-button type="danger" icon="el-icon-delete" @click="deleteRole(scope.row.id)" plain>删除</el-button>
           <!-- 对话框-编辑角色 -->
           <el-dialog title="编辑角色" :visible.sync="showEditRole">
-            <el-form :model="editRoleForm" class="addRole-dialog">
-              <el-form-item label="角色名称" :label-width="editRoleWidth">
+            <el-form :model="editRoleForm" :rules="rules" class="addRole-dialog">
+              <el-form-item label="角色名称" prop="roleName" :label-width="editRoleWidth">
                 <el-input v-model="editRoleForm.roleName" autocomplete="off"></el-input>
               </el-form-item>
               <el-form-item label="角色描述" :label-width="editRoleWidth">
@@ -86,8 +86,8 @@
     </el-table>
     <!-- 对话框-添加角色 -->
     <el-dialog title="添加角色" :visible.sync="showAddRole">
-      <el-form :model="addRoleForm" class="addRole-dialog">
-        <el-form-item label="角色名称" :label-width="addRoleWidth">
+      <el-form :model="addRoleForm" :rules="rules" class="addRole-dialog">
+        <el-form-item label="角色名称" prop="roleName" :label-width="addRoleWidth">
           <el-input v-model="addRoleForm.roleName" autocomplete="off"></el-input>
         </el-form-item>
         <el-form-item label="角色描述" :label-width="addRoleWidth">
@@ -118,6 +118,9 @@ export default {
       rightsTree: [], // 修改权限-树形列表
       checkedRights: [], // 修改权限-已有（选中）权限
       expandNodes: [], // 修改权限-需展开的结点
+      rules: { // 表单验证规则
+        roleName: [{required: true, message: '角色名称不能为空', tigger: 'blur'}]
+      },
       // 表单数据-添加角色对话框
       addRoleForm: {
         roleName: '',

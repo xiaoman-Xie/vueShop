@@ -76,14 +76,14 @@
               circle
               @click="showEdit(scope.row)"></el-button>
               <el-dialog title="编辑用户" :visible.sync="showEditUser">
-                <el-form :model="editUserForm">
+                <el-form :model="editUserForm" :rules="rules">
                   <el-form-item class="editForm" label="用户名" :label-width="editUserWidth">
                     <el-input v-model="editUserForm.username" autocomplete="off" disabled></el-input>
                   </el-form-item>
-                  <el-form-item class="editForm" label="邮箱" :label-width="editUserWidth">
+                  <el-form-item class="editForm" label="邮箱" prop="email" :label-width="editUserWidth">
                     <el-input v-model="editUserForm.email" autocomplete="off"></el-input>
                   </el-form-item>
-                  <el-form-item class="editForm" label="手机号" :label-width="editUserWidth">
+                  <el-form-item class="editForm" label="手机号" prop="phoneNumber" :label-width="editUserWidth">
                     <el-input v-model="editUserForm.mobile" autocomplete="off"></el-input>
                   </el-form-item>
                 </el-form>
@@ -136,17 +136,17 @@
     </div>
     <!-- 添加用户-对话框 -->
     <el-dialog title="添加用户" :visible.sync="showAddUser">
-      <el-form :model="addUserForm">
-        <el-form-item class="addForm" label="用户名" :label-width="addUserWidth">
+      <el-form :model="addUserForm" :rules="rules">
+        <el-form-item class="addForm" label="用户名" prop="username" :label-width="addUserWidth">
           <el-input v-model="addUserForm.username" autocomplete="off"></el-input>
         </el-form-item>
-        <el-form-item class="addForm" label="密码" :label-width="addUserWidth">
-          <el-input v-model="addUserForm.password" autocomplete="off"></el-input>
+        <el-form-item class="addForm" label="密码" prop="password" :label-width="addUserWidth">
+          <el-input type="password" v-model="addUserForm.password" autocomplete="off"></el-input>
         </el-form-item>
-        <el-form-item class="addForm" label="邮箱" :label-width="addUserWidth">
+        <el-form-item class="addForm" label="邮箱" prop="email" :label-width="addUserWidth">
           <el-input v-model="addUserForm.email" autocomplete="off"></el-input>
         </el-form-item>
-        <el-form-item class="addForm" label="手机号" :label-width="addUserWidth">
+        <el-form-item class="addForm" label="手机号" prop="phoneNumber" :label-width="addUserWidth">
           <el-input v-model="addUserForm.mobile" autocomplete="off"></el-input>
         </el-form-item>
       </el-form>
@@ -190,7 +190,15 @@ export default {
         rid: ''
       },
       currentUser: '', // 当前用户名-table选中
-      roleslist: [] // 修改角色-角色列表
+      roleslist: [], // 修改角色-角色列表
+      rules: {
+        username: [{required: true, message: '用户名必须填写', trigger: 'blur'},
+          {max: 20, message: '不能超过20个字符', trigger: 'blur'}],
+        password: [{required: true, message: '请填写密码', trigger: 'blur'},
+          {min: 6, max: 20, message: '密码需由6-20字符组成', trigger: 'blur'}],
+        email: [{validator: this.checkEmail, trigger: 'blur'}],
+        phoneNumber: [{validator: this.checkPhone, trigger: 'blur'}]
+      }
     }
   },
   methods: {
@@ -316,6 +324,30 @@ export default {
           message: '已取消删除'
         })
       })
+    },
+    checkEmail (rule, value, callback) {
+      const mailReg = /^([a-zA-Z0-9_-])+@([a-zA-Z0-9_-])+(.[a-zA-Z0-9_-])+/
+      if (value) {
+        if (mailReg.test(value)) {
+          callback()
+        } else {
+          callback(new Error('请输入正确的邮箱格式'))
+        }
+      }
+    },
+    checkPhone (rule, value, callback) {
+      const phoneReg = /^1[3|4|5|7|8][0-9]{9}$/
+      if (value) {
+        if (Number.isInteger(+value)) {
+          callback(new Error('请输入数字值'))
+        } else {
+          if (phoneReg.test(value)) {
+            callback()
+          } else {
+            callback(new Error('手机号格式不正确'))
+          }
+        }
+      }
     }
   },
   created () {

@@ -51,17 +51,17 @@
             <el-button type="danger" icon="el-icon-delete" size="small" @click="deleteGood(scope.row)" plain circle></el-button>
           </el-row>
           <el-dialog :visible.sync="showEditGood">
-            <el-form :data="editForm">
-              <el-form-item label="商品名称">
+            <el-form :data="editForm" :rules="rules">
+              <el-form-item label="商品名称" prop="goodsName">
                 <el-input v-model="editForm.goods_name"></el-input>
               </el-form-item>
-              <el-form-item label="商品价格">
+              <el-form-item label="商品价格" prop="goodsPrice">
                 <el-input v-model="editForm.goods_price"></el-input>
               </el-form-item>
-              <el-form-item label="商品数量">
+              <el-form-item label="商品数量" prop="goodsNumber">
                 <el-input v-model="editForm.goods_number"></el-input>
               </el-form-item>
-              <el-form-item label="商品重量">
+              <el-form-item label="商品重量" prop="goodsWeight">
                 <el-input v-model="editForm.goods_weight"></el-input>
               </el-form-item>
               <el-form-item label="商品介绍">
@@ -111,6 +111,12 @@ export default {
         goods_state: '',
         pics: {},
         attrs: []
+      },
+      rules: {
+        goodsName: [{required: true, message: '商品名称不能为空', trigger: 'blur'}],
+        goodsPrice: [{required: true, message: '商品价格不能为空', trigger: 'blur'}],
+        goodsNumber: [{required: true, message: '商品数量不能为空', trigger: 'blur'}],
+        goodsWeight: [{required: true, message: '商品重量不能为空', trigger: 'blur'}]
       }
     }
   },

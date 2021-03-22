@@ -10,22 +10,22 @@
       <el-step title="商品图片"></el-step>
       <el-step title="商品内容"></el-step>
     </el-steps>
-    <el-form :model="goods_form" class="good-forms" label-width="80px">
+    <el-form :model="goods_form" :rules="rules" class="good-forms" label-width="80px">
       <el-tabs v-model="step_active" @tab-click="tabChange()" class="tabs" tab-position="left">
           <el-tab-pane name="1" label="基本信息">
-            <el-form-item label="商品名称">
+            <el-form-item label="商品名称" prop="goodsName">
               <el-input v-model="goods_form.goods_name"></el-input>
             </el-form-item>
-            <el-form-item label="商品价格">
+            <el-form-item label="商品价格" prop="goodsPrice">
               <el-input v-model="goods_form.goods_price"></el-input>
             </el-form-item>
-            <el-form-item label="商品重量">
+            <el-form-item label="商品重量" prop="goodsWeight">
               <el-input v-model="goods_form.goods_weight"></el-input>
             </el-form-item>
-            <el-form-item label="商品数量">
+            <el-form-item label="商品数量" prop="goodsNumber">
               <el-input v-model="goods_form.goods_number"></el-input>
             </el-form-item>
-            <el-form-item label="商品分类">
+            <el-form-item label="商品分类" prop="goodsCate">
               <el-cascader
                 :options="options"
                 :props="defaultProp"
@@ -92,6 +92,14 @@ export default {
         pics: [], //
         attrs: [] //
       },
+      rules: {
+        goodsName: [{required: true, message: '商品名称不能为空', trigger: 'blur'}],
+        goodsCate: [{validator: this.checkCate, trigger: 'change'},
+          {required: true, message: '商品分类不能为空', trigger: 'blur'}],
+        goodsPrice: [{required: true, message: '商品价格不能为空', trigger: 'blur'}],
+        goodsNumber: [{required: true, message: '商品数量不能为空', trigger: 'blur'}],
+        goodsWeight: [{required: true, message: '商品重量不能为空', trigger: 'blur'}]
+      },
       // 级联选择器绑定的数据
       options: [], // 可选项
       selectedOptions: [], // 选中项
@@ -119,7 +127,7 @@ export default {
       if (this.step_active === '2') {
         // 商品分类未选三级，则提示
         if (this.selectedOptions.length !== 3) {
-          this.$message.warning('请先选择三级商品分类')
+          this.$message.warning('请先选择商品分类')
         } else {
           const res = await this.$http.get(`categories/${this.selectedOptions[2]}/attributes?sel=many`)
           this.dynaParams = res.data.data
@@ -129,7 +137,7 @@ export default {
         }
       } else if (this.step_active === '3') {
         if (this.selectedOptions.length !== 3) {
-          this.$message.warning('请先选择三级商品分类')
+          this.$message.warning('请先选择商品分类')
         }
         const res = await this.$http.get(`categories/${this.selectedOptions[2]}/attributes?sel=only`)
         this.staticParams = res.data.data
@@ -178,6 +186,13 @@ export default {
         this.$router.push('/goods')
       } else {
         this.$message.warning(msg)
+      }
+    },
+    checkCate (rule, value, callback) {
+      if (this.selectedOptions.length === 0) {
+        callback(new Error('商品分类不能为空'))
+      } else {
+        callback()
       }
     }
   },

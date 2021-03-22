@@ -41,8 +41,8 @@
           <el-button type="primary" icon="el-icon-edit" size="small" @click="showEdit(scope.row)" plain circle></el-button>
           <el-button type="danger" icon="el-icon-delete" size="small" @click="deleteCate(scope.row)" plain circle></el-button>
           <el-dialog title="编辑分类" :visible.sync="showEditCate">
-            <el-form>
-              <el-form-item label="分类名称" label-width="80px">
+            <el-form rules="rules">
+              <el-form-item label="分类名称" prop="goodsName" label-width="80px">
                 <el-input v-model="editCateName"></el-input>
               </el-form-item>
               <el-row class="dialog-footer">
@@ -67,19 +67,21 @@
       </el-pagination>
     </div>
     <el-dialog title="添加分类" :visible.sync="showAddCate">
-      <el-form v-model="addCateForm">
-        <el-form-item label="分类名称">
+      <el-form v-model="addCateForm" :rules="rules">
+        <el-form-item prop="goodsName" label="分类名称" label-width="80px">
           <el-input v-model="addCateForm.cat_name"></el-input>
         </el-form-item>
+        <el-form-item prop="cate" label="分类" label-width="80px">
+          <el-cascader
+            :options="options"
+            :props="defaultProp"
+            v-model="selectedOptions"
+            :show-all-levels="false"
+            clearable>
+          </el-cascader>
+          <span class="tips">不选择则默认添加到一级分类</span>
+        </el-form-item>
       </el-form>
-      <span class="cascader-label">分类</span>
-      <el-cascader
-        :options="options"
-        :props="defaultProp"
-        v-model="selectedOptions"
-        :show-all-levels="false"
-        clearable>
-      </el-cascader>
       <span slot="footer" class="dialog-footer">
         <el-button @click="showAddCate = false">取 消</el-button>
         <el-button type="primary" @click="addCate()">确 定</el-button>
@@ -98,7 +100,10 @@ export default {
       total: 0,
       catelist1: [],
       showAddCate: false, // 对话框-展示-添加分类
-      showEditCate: false, // 对话框-展示-编辑分类
+      showEditCate: false, // 对话框-展示-编辑分类,
+      rules: {
+        goodsName: [{required: true, message: '商品名称不能为空', trigger: 'blur'}]
+      },
       addCateForm: { // 表单内容-添加分类
         cat_pid: -1,
         cat_name: '',
@@ -228,5 +233,10 @@ export default {
   }
   .dialog-footer {
     text-align: right;
+  }
+  .tips {
+    display: inline-block;
+    color: #a7a4a4;
+    margin-left: 10px;
   }
 </style>
